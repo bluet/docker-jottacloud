@@ -2,7 +2,7 @@
 # Description: This dockerfile is used to build the docker image for a containerized jotta backup client, with the latest version of official jotta-cli preloaded at the time of build.
 # Author: BlueT - Matthew Lien - 練喆明
 
-FROM ubuntu:22.04
+FROM ubuntu:kinetic
 LABEL org.opencontainers.image.authors="bluet@bluet.org"
 
 VOLUME [ "/data" ]

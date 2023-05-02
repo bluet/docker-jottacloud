@@ -3,14 +3,13 @@ services:
     jottacloud:
         container_name: jottacloud-cli
         environment:
-            - JOTTA_TOKEN=eyJ1c2VybmFtZSI6IjVjYjBhNzEyZTMxOWE3MDEzMzhmYjVkMyIsInJlYWxtIjoiam90dGFjbG91ZCIsIndlbGxfa25vd25fbGluayI6Imh0dHBzOi8vaWQuam90dGFjbG91ZC5jb20vYXV0aC9yZWFsbXMvam90dGFjbG91ZC8ud2VsbC1rbm93bi9vcGVuaWQtY29uZmlndXJhdGlvbiIsImF1dGhfdG9rZW4iOiI0MDIyOEI4NDgxRkQyNzhBMEI2NzRGOEIyMjJENUFEQyJ9
-            - JOTTA_DEVICE=ThorPi
-            - JOTTA_SCANINTERVAL=10m
+            - JOTTA_TOKEN=YOUR_AUTH_KEY_GOES_HERE
+            - JOTTA_DEVICE=YOUR_MACHINE_NAME_GOES HERE
+            - JOTTA_SCANINTERVAL=10m #0 for realtime, 10m, 1h etc
             - LOCALTIME=Europe/Zurich
         volumes:
             - './:/data/jottad'
             - './.ignore:/data/jottad/.ignore'
             - './jottad.env:/data/jottad/jottad.env'
-            - '/home/:/backup/home'
-            - '/mnt/BlackUSB/backups/:/backup/mnt/BlackUSB/backups'
+            - '/home/:/backup/home' #add lines like this for multiple back up folders
         image: bluet/jottacloud

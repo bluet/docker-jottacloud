@@ -25,6 +25,7 @@ mkdir -p /data/jottad
 ln -sfn /data/jottad /root/.jottad
 #mkdir -p /root/.config/jotta-cli
 mkdir -p /data/jotta-cli
+mkdir -p /root/.config
 ln -sfn /data/jotta-cli /root/.config/jotta-cli
 
 # start the service

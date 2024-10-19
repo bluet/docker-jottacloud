@@ -16,9 +16,9 @@ ENV JOTTA_TOKEN="**None**" \
 
 RUN apt-get update -y &&\
 	apt-get upgrade -y &&\
-	apt-get -y install wget gnupg apt-transport-https ca-certificates expect &&\
-	wget -O - https://repo.jotta.us/public.gpg | apt-key add - &&\
-	echo "deb https://repo.jotta.us/debian debian main" | tee /etc/apt/sources.list.d/jotta-cli.list &&\
+	apt-get -y install curl apt-transport-https ca-certificates expect &&\
+	curl -fsSL https://repo.jotta.cloud/public.asc -o /usr/share/keyrings/jotta.gpg &&\
+	echo "deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main" | sudo tee /etc/apt/sources.list.d/jotta-cli.list &&\
 	apt-get update -y &&\
 	apt-get install jotta-cli psmisc -y &&\
 	apt-get autoremove -y --purge &&\

@@ -23,7 +23,7 @@ fi
 # chown jottad /var/lib/jottad -R
 mkdir -p /data/jottad
 ln -sfn /data/jottad /root/.jottad
-mkdir -p /root/.config/jotta-cli
+#mkdir -p /root/.config/jotta-cli
 mkdir -p /data/jotta-cli
 ln -sfn /data/jotta-cli /root/.config/jotta-cli
 
@@ -48,6 +48,8 @@ while :; do
   fi
 
   if [ $R -ne 0 ]; then
+    echo "Could not start jotta. Checking why."
+    
     if [[ "$(timeout 1 jotta-cli status 2>&1)" =~ "Found remote device that matches this machine" ]]; then
       echo -n "..found matching device name.."
       /usr/bin/expect -c "
@@ -83,14 +85,29 @@ while :; do
 
       # Login user
       /usr/bin/expect -c "
-      set timeout 20
-      spawn jotta-cli login
-      expect \"accept license (yes/no): \" {send \"yes\n\"}
-      expect \"Personal login token: \" {send \"$JOTTA_TOKEN\n\"}
-      expect \"Devicename*: \" {send \"$JOTTA_DEVICE\n\"}
-      expect eof
-      # TODO: Jotta may return "Found remote device that matches this machine", where a yes/no answer could be given automatically
+        set timeout 20
+        spawn jotta-cli login
+        expect \"accept license (yes/no): \" {send \"yes\n\"}
+        expect \"Personal login token: \" {send \"$JOTTA_TOKEN\n\"}
+        expect {
+        eof {
+              exit 1
+          }
+          \"Devicename*: \" {
+            send \"$JOTTA_DEVICE\n\"
+            expect eof
+          }
+          \"Do you want to re-use this device? (yes/no):\" {
+            send \"yes\n\"
+            expect eof
+          }
+        }
       "
+      R=$?
+      if [ $R -ne 0 ]; then
+        echo "Login failed"
+        exit 1
+      fi
     fi
   fi
 

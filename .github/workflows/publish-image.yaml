@@ -1,8 +1,8 @@
 name: Build and Push Docker Image
 
 on:
-  #schedule:
-  #  - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  schedule:
+    - cron: '0 0 * * 0'  # Runs on every Sunday at midnight UTC
   workflow_dispatch:
 
 env:
@@ -49,7 +49,7 @@ jobs:
       # This uses the tag names, and excludes the "latest" tag
       - name: Get latest published Docker image version
         run: |
-          DOCKER_VERSION=$(curl -s "https://registry.hub.docker.com/v2/repositories/bluet/jottacloud/tags" | \
+          DOCKER_VERSION=$(curl -s "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKER_REPO }}/tags" | \
             jq -r '.results[].name' | grep -v '^latest$' | awk -F '-' '{print $1}' | sort -V | tail -n1)
           echo "DOCKER_VERSION=$DOCKER_VERSION" >> $GITHUB_ENV
 

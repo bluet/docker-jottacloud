@@ -70,18 +70,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Set date variable for image tags
+      - name: Set the date variable
+        run: |
+          DATE=$(date +%Y%m%d)  # Get the current date in yyyyMMdd format
+          echo "DATE=$DATE" >> $GITHUB_ENV
+
       # Build and push the Docker image for multiple platforms
       - name: Build and push Docker image
         run: |
+          IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
           docker buildx build --platform linux/amd64,linux/arm64/v8 \
             -t ${{ env.DOCKER_REPO }}:latest \
-            -t ${{ env.DOCKER_REPO }}:${{ env.VERSION }} \
+            -t ${{ env.DOCKER_REPO }}:${IMAGE_TAG} \
             --push .
 
       # Tag the Git repository with the new version and push the tag
       - name: Tag and push Git version
         run: |
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"  # Uses the GitHub username as email
-          git config --global user.name "${{ github.actor }}"  # Uses the GitHub username as name
-          git tag "${{ env.VERSION }}" -a -m "jotta-cli ${{ env.VERSION }}"
+          IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+          git tag "${IMAGE_TAG}" -a -m "jotta-cli ${IMAGE_TAG}"
           git push --tags

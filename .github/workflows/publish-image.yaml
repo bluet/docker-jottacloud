@@ -25,6 +25,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Add Jottacloud repo in order to get the newest jotta-cli version
+      - name: Add Jottacloud repo
+        run: |
+          sudo apt-get update
+          sudo curl -fsSL https://repo.jotta.cloud/public.asc -o /usr/share/keyrings/jotta.gpg
+          echo "deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main" | sudo tee /etc/apt/sources.list.d/jotta-cli.list
+          sudo apt-get update
+
       # Get the latest available jotta-cli version from APT
       - name: Get latest jotta-cli version
         run: |

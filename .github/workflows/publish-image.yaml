@@ -28,6 +28,7 @@ jobs:
       # Add Jottacloud repo in order to get the newest jotta-cli version
       - name: Add Jottacloud repo
         run: |
+          set -e
           sudo apt-get update
           sudo curl -fsSL https://repo.jotta.cloud/public.asc -o /usr/share/keyrings/jotta.gpg
           echo "deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main" | sudo tee /etc/apt/sources.list.d/jotta-cli.list
@@ -37,6 +38,10 @@ jobs:
       - name: Get latest jotta-cli version
         run: |
           VERSION=$(apt-cache madison jotta-cli | awk '{print $3}' | sort -V | tail -n1)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Unable to fetch jotta-cli version."
+            exit 1
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       # Get the latest pushed Docker image version from Docker Hub
@@ -76,5 +81,7 @@ jobs:
       # Tag the Git repository with the new version and push the tag
       - name: Tag and push Git version
         run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"  # Uses the GitHub username as email
+          git config --global user.name "${{ github.actor }}"  # Uses the GitHub username as name
           git tag "${{ env.VERSION }}" -a -m "jotta-cli ${{ env.VERSION }}"
           git push --tags

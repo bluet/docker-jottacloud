@@ -91,5 +91,5 @@ jobs:
           IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git config --global user.name "${{ github.actor }}"
-          git tag "${IMAGE_TAG}" -a -m "jotta-cli ${IMAGE_TAG}"
+          git tag "${IMAGE_TAG}" -a -m "jotta-cli ${{ env.VERSION }}"
           git push --tags

@@ -51,12 +51,10 @@ jobs:
         run: |
           DOCKER_VERSION=$(curl -s "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKER_REPO }}/tags" | \
             jq -r '.results[].name' | grep -v '^latest$' | awk -F '-' '{print $1}' | sort -V | tail -n1)
-
           if [ -z "$DOCKER_VERSION" ]; then
             echo "Error: Failed to retrieve latest Docker image version. Exiting."
             exit 1
           fi
-          
           echo "DOCKER_VERSION=$DOCKER_VERSION" >> $GITHUB_ENV
 
       # Compare versions; exit early if no update is needed

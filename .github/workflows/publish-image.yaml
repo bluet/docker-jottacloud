@@ -61,33 +61,33 @@ jobs:
       - name: Compare versions and decide whether to build
         run: |
           if [ "${{ env.VERSION }}" == "${{ env.DOCKER_VERSION }}" ]; then
-            echo "NO_UPDATE=true" >> $GITHUB_ENV
+            echo "UPDATE_IMAGE=false" >> $GITHUB_ENV
             echo "No update needed. Skipping build."
           else
-            echo "NO_UPDATE=false" >> $GITHUB_ENV
+            echo "UPDATE_IMAGE=true" >> $GITHUB_ENV
             echo "New version detected: ${{ env.VERSION }} (Latest Docker version: ${{ env.DOCKER_VERSION }})"
           fi
 
       # Enable QEMU for multi-platform builds
       - name: Set up QEMU
-        if: env.NO_UPDATE == 'false'
+        if: env.UPDATE_IMAGE == 'true'
         uses: docker/setup-qemu-action@v3
 
       # Enable Buildx for advanced Docker builds
       - name: Set up Docker Buildx
-        if: env.NO_UPDATE == 'false'
+        if: env.UPDATE_IMAGE == 'true'
         uses: docker/setup-buildx-action@v3
 
       # Set date variable for image tags
       - name: Set the date variable
-        if: env.NO_UPDATE == 'false'
+        if: env.UPDATE_IMAGE == 'true'
         run: |
           DATE=$(date +%Y%m%d)  # Get the current date in yyyyMMdd format
           echo "DATE=$DATE" >> $GITHUB_ENV
 
       # Build and push the Docker image for multiple platforms
       - name: Build and push Docker image
-        if: env.NO_UPDATE == 'false'
+        if: env.UPDATE_IMAGE == 'true'
         run: |
           IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
           docker buildx build --platform linux/amd64,linux/arm64/v8 \
@@ -97,7 +97,7 @@ jobs:
 
       # Tag the Git repository with the new version and push the tag
       - name: Tag and push Git version
-        if: env.NO_UPDATE == 'false'
+        if: env.UPDATE_IMAGE == 'true'
         run: |
           IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"

@@ -20,3 +20,4 @@ jobs:
           repository: ${{ secrets.DOCKER_REPO || github.repository }}
           readme-filepath: ./README.md
           short-description: ${{ github.event.repository.description }}
+          enable-url-completion: true

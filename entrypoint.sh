@@ -128,7 +128,7 @@ done
 
 echo "Adding backups"
 
-for dir in /backup/* ; do if [ -d "${dir}" ]; then set +e && jotta-cli add /$dir && set -e; fi; done
+for dir in /backup/* ; do if [ -d "${dir}" ]; then set +e && jotta-cli add "${dir}" && set -e; fi; done
 
 # load ignore file
 if [ -f /config/ignorefile ]; then

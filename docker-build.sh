@@ -3,7 +3,7 @@
 VERSION=0.17.132497
 DATE=`date +%Y%m%d`
 
-docker build --pull -t bluet/jottacloud .
+docker build --no-cache --pull -t bluet/jottacloud .
 # docker scan bluet/jottacloud:latest
 docker scout quickview bluet/jottacloud:latest
 grype bluet/jottacloud:latest | grep -i -E '(High|Critical)'
@@ -22,7 +22,7 @@ docker tag bluet/jottacloud:latest bluet/jottacloud:${VERSION}
 while true; do
         read -p "Is VERSION=${VERSION}-${DATE} the current latest version? (We're going to build multi-platform images and push) [y/N]" yn
         case $yn in
-                [Yy]* ) docker buildx build --builder cloud-bluet-test -t bluet/jottacloud:latest -t bluet/jottacloud:${VERSION}-${DATE} --platform linux/amd64,linux/arm64/v8 --pull --push .; break;;
+                [Yy]* ) docker buildx build --no-cache --builder cloud-bluet-test -t bluet/jottacloud:latest -t bluet/jottacloud:${VERSION}-${DATE} --platform linux/amd64,linux/arm64/v8 --pull --push .; break;;
                 [Nn]* ) break;;
                 * ) echo "";;
         esac

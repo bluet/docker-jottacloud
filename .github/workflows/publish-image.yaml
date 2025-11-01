@@ -1,0 +1,106 @@
+name: Build and Push Docker Image
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Runs on every Sunday at midnight UTC
+  workflow_dispatch:
+
+env:
+  # Default to GitHub repo name, but allows to set a separate docker repo name
+  # using GitHub repo secrets.
+  DOCKER_REPO: ${{ secrets.DOCKER_REPO || github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Log in to DockerHub using stored credentials
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Add Jottacloud repo in order to get the newest jotta-cli version
+      - name: Add Jottacloud repo
+        run: |
+          set -e
+          sudo apt-get update
+          sudo curl -fsSL https://repo.jotta.cloud/public.asc -o /usr/share/keyrings/jotta.gpg
+          echo "deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main" | sudo tee /etc/apt/sources.list.d/jotta-cli.list
+          sudo apt-get update
+
+      # Get the latest available jotta-cli version from APT
+      - name: Get latest jotta-cli version
+        run: |
+          VERSION=$(apt-cache madison jotta-cli | awk '{print $3}' | sort -V | tail -n1)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Unable to fetch jotta-cli version."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # Get the latest pushed Docker image version from Docker Hub
+      # This uses the tag names, and excludes the "latest" tag
+      - name: Get latest published Docker image version
+        run: |
+          DOCKER_VERSION=$(curl -s "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKER_REPO }}/tags" | \
+            jq -r '.results[].name' | grep -v '^latest$' | awk -F '-' '{print $1}' | sort -V | tail -n1)
+          if [ -z "$DOCKER_VERSION" ]; then
+            echo "Error: Failed to retrieve latest Docker image version. Exiting."
+            exit 1
+          fi
+          echo "DOCKER_VERSION=$DOCKER_VERSION" >> $GITHUB_ENV
+
+      # Compare versions; exit early if no update is needed
+      - name: Compare versions and decide whether to build
+        run: |
+          if [ "${{ env.VERSION }}" == "${{ env.DOCKER_VERSION }}" ]; then
+            echo "UPDATE_IMAGE=false" >> $GITHUB_ENV
+            echo "No update needed. Skipping build."
+          else
+            echo "UPDATE_IMAGE=true" >> $GITHUB_ENV
+            echo "New version detected: ${{ env.VERSION }} (Latest Docker version: ${{ env.DOCKER_VERSION }})"
+          fi
+
+      # Enable QEMU for multi-platform builds
+      - name: Set up QEMU
+        if: env.UPDATE_IMAGE == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      # Enable Buildx for advanced Docker builds
+      - name: Set up Docker Buildx
+        if: env.UPDATE_IMAGE == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      # Set date variable for image tags
+      - name: Set the date variable
+        if: env.UPDATE_IMAGE == 'true'
+        run: |
+          DATE=$(date +%Y%m%d)  # Get the current date in yyyyMMdd format
+          echo "DATE=$DATE" >> $GITHUB_ENV
+
+      # Build and push the Docker image for multiple platforms
+      - name: Build and push Docker image
+        if: env.UPDATE_IMAGE == 'true'
+        run: |
+          IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
+          docker buildx build --platform linux/amd64,linux/arm64/v8 \
+            -t ${{ env.DOCKER_REPO }}:latest \
+            -t ${{ env.DOCKER_REPO }}:${IMAGE_TAG} \
+            --push .
+
+      # Tag the Git repository with the new version and push the tag
+      - name: Tag and push Git version
+        if: env.UPDATE_IMAGE == 'true'
+        run: |
+          IMAGE_TAG="${{ env.VERSION }}-${{ env.DATE }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+          git tag "${IMAGE_TAG}" -a -m "jotta-cli ${{ env.VERSION }}"
+          git push --tags

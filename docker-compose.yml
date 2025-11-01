@@ -4,7 +4,7 @@ services:
         container_name: jottacloud-cli
         environment:
             - JOTTA_TOKEN=YOUR_AUTH_KEY_GOES_HERE
-            - JOTTA_DEVICE=YOUR_MACHINE_NAME_GOES HERE
+            - JOTTA_DEVICE=YOUR_MACHINE_NAME_GOES_HERE
             - JOTTA_SCANINTERVAL=10m #0 for realtime, 10m, 1h etc
             - LOCALTIME=Europe/Zurich
         volumes:

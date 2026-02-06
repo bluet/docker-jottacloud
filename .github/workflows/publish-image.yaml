@@ -50,7 +50,7 @@ jobs:
       - name: Get latest published Docker image version
         run: |
           DOCKER_VERSION=$(curl -s "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKER_REPO }}/tags" | \
-            jq -r '.results[].name' | grep -v '^latest$' | awk -F '-' '{print $1}' | sort -V | tail -n1)
+            jq -r '.results[].name' | grep -v '^latest$' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
           if [ -z "$DOCKER_VERSION" ]; then
             echo "Error: Failed to retrieve latest Docker image version. Exiting."
             exit 1

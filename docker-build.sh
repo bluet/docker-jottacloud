@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.17.148769
+VERSION=0.17.176206
 DATE=`date +%Y%m%d`
 
 docker build --no-cache --pull -t bluet/jottacloud .
